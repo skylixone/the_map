@@ -1,7 +1,7 @@
-# Tile schema — DRAFT v0.1 (awaiting owner OK)
+# Tile schema — DRAFT v0.2 (optional items decided 2026-11-16; full sign-off pending)
 
 This is the contract between the pipeline and every future control: a style can only use what is listed here.
-Status: **proposed, not approved.** No full build until the owner signs off.
+Status: optional items decided 2026-11-16 (see DECISIONS.md). Generalisation (below) and overall sign-off still pending; no full build before that.
 
 ## Container
 - One file: `data/out/the_map.pmtiles`, MVT, gzip-compressed tiles, EPSG:3857.
@@ -33,11 +33,11 @@ Mixed geometry in one layer; style filters on `$type` (`Polygon` / `LineString`)
 |  |  | `water` | `natural=water` with no `water=*` (untyped) |
 |  |  | `other` | any other `water=*` (basin, wastewater, lock, moat, ditch, …) |
 | LineString | `kind` | `river` \| `canal` \| `stream` | `waterway=*` |
-| both | `intermittent` | `true` (omitted otherwise) | `intermittent=yes` or `seasonal=yes`. **Proposed — needs OK.** Relevant to Kakhovka and southern steppe streams. |
+| both | `intermittent` | `true` (omitted otherwise) | `intermittent=yes` or `seasonal=yes`. Approved 2026-11-16. Relevant to Kakhovka and southern steppe streams. |
 
 Precedence when tags conflict: `water=*` → `landuse=reservoir` → `waterway=riverbank` → untyped.
 Excluded: `waterway=ditch|drain` and any waterway segment with `tunnel=*` other than `no` (culverts and underground streams would draw as surface water).
-`natural=wetland` is **not** included in phase 1.
+`natural=wetland` is **not** included in phase 1 (owner decision 2026-11-16).
 
 ## Layer `settlements`
 | geometry | attribute | values | meaning |
@@ -45,13 +45,15 @@ Excluded: `waterway=ditch|drain` and any waterway segment with `tunnel=*` other 
 | Polygon | `kind` | `residential` | `landuse=residential` |
 |  | `source` | `osm` | provenance; future: `ghsl`, `wsf` |
 
-`kind` exists so that other sources and landuses can join without a schema break. Candidates, **not included unless approved**:
-`industrial`, `commercial`, `retail` (they fill visible holes in city cores, Kyiv especially).
+`kind` exists so that other sources and landuses can join without a schema break.
+`industrial`/`commercial`/`retail`: **excluded** (owner decision 2026-11-16); city cores will show holes where OSM has no residential.
 `place`/`name`: **recommend omitting.** Joining place nodes to residential polygons is ambiguous: one village spans several polygons, and one polygon can hold several places.
 Names are the heaviest attribute class. Phase 2 can add a separate `places` point layer for labels instead.
 
 ## Generalisation (affects what the tiles contain, so it lives in the contract)
-Per-feature minzoom is computed in the pipeline and passed to tippecanoe as `"tippecanoe":{"minzoom":n}`; it costs no tile bytes.
+Per-feature minzoom is computed in the pipeline (`tippecanoe.minzoom` in the normalised GeoJSONSeq); it costs no tile bytes.
+It is realised by bucketing (one tippecanoe run per minzoom with `-Z<n>`, then tile-join), not by tippecanoe's own feature
+minzoom, which is broken in the installed 2.49 (see DECISIONS.md).
 - Polygons (`water`, `settlements`): minzoom = first zoom at which the feature covers ≥ `MINZOOM_PX2` screen px²
   (512 px tiles, latitude-corrected). Default `MINZOOM_PX2=4` (≈2×2 px). `ground` is always 0.
 - Lines: by kind — `river` 6, `canal` 8, `stream` 11.

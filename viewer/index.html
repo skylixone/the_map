@@ -53,6 +53,7 @@ const map = new maplibregl.Map({
     ],
   },
 });
+window.__map = map; // hook for scripts/screens.mjs
 const hud = document.getElementById('hud');
 const show = () => { const c = map.getCenter();
   hud.textContent = `z${map.getZoom().toFixed(2)}  ${c.lat.toFixed(4)},${c.lng.toFixed(4)}  ${url.split('/').pop()}`; };

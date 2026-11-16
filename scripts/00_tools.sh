@@ -11,5 +11,5 @@ if ! command -v pmtiles >/dev/null; then
   ln -sf /usr/local/bin/go-pmtiles /usr/local/bin/pmtiles
 fi
 [[ -x "$PY" ]] || { python3 -m venv "$ROOT/.venv"; "$PY" -m pip install -q 'shapely>=2.0,<3'; }
-for t in osmium ogr2ogr tippecanoe tile-join pmtiles; do printf '%-11s %s\n' "$t" "$($t --version 2>&1 | head -1)"; done
+for t in osmium ogr2ogr tippecanoe; do printf "%-11s %s\n" "$t" "$($t --version 2>&1 | head -1)"; done; printf "%-11s %s\n" pmtiles "$(pmtiles version 2>&1 | head -1)"
 "$PY" -c 'import shapely; print("shapely    ", shapely.__version__)'

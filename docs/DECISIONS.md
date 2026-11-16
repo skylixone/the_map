@@ -16,3 +16,9 @@ Format: `YYYY-MM-DD — decision — reason`. Append only; supersede with a new 
 - 2026-11-16 — `--detect-shared-borders` on water and settlements — adjacent polygons simplify identically; no hairline seams.
 - 2026-11-16 — Viewer pins maplibre-gl 5.24.0 + pmtiles 4.5.0 from unpkg — 6.x API unchecked; 5.24.1 is under two weeks old.
 - 2026-11-16 — Local serving via `scripts/serve.py` (Range-capable) — `python -m http.server` ignores Range, PMTiles needs it.
+- 2026-11-16 — Schema: `water.intermittent` (true|omitted) in; `settlements.kind` stays `residential` only (no industrial/commercial/retail); no `natural=wetland` — owner decision.
+- 2026-11-16 — PBF from OSM France mirror (`download.openstreetmap.fr/extracts/europe/ukraine.osm.pbf`, 970 MB) — Geofabrik resets every TLS handshake from the cloud env for 30+ min; OSM-FR cut polygon verified to contain 100% of the COD-AB outline incl. Crimea. Supersedes the Geofabrik line above for this environment.
+- 2026-11-16 — Clip outline: compare COD-AB (Kartographia, HDX) as a third candidate — owner decision; analysis in OPEN.md §1.
+- 2026-11-16 — Clip outline candidates measured (OSM 60199, geoBoundaries, COD-AB); recommendation OSM 60199 + containment guard, COD-AB as reference — evidence in OPEN.md §1. Provisional default `CLIP_SOURCE=osm` pending owner OK.
+- 2026-11-16 — Do not use tippecanoe feature `"tippecanoe":{"minzoom"}` with tippecanoe 2.49 (Ubuntu noble) — synthetic test: minzoom 5 first appears z14, minzoom 12 at z13; first sample build lost ~99 % of polygons (Kyiv z12 tile: 1 of 300). Workaround: `scripts/lib/bucket.py` splits by minzoom, one run per bucket with `-Z<n>`, tile-join merges same-named layers (verified: no loss). Unverified whether upstream 2.79.0 fixes it; building from source was not approved.
+- 2026-11-16 — Verification includes decoding sample tiles and comparing feature counts with the input (not only metadata) — the minzoom loss passed every metadata check.

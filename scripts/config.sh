@@ -7,12 +7,15 @@ WORK="$DATA/work"        # intermediates, safe to delete
 OUT="$DATA/out"          # final tiles
 mkdir -p "$SRC" "$WORK" "$OUT"
 
-PBF_URL="${PBF_URL:-https://download.geofabrik.de/europe/ukraine-latest.osm.pbf}"
+# Geofabrik resets every connection from the cloud environment (docs/OPEN.md §0); OSM France mirror verified to cover
+# the full COD-AB outline incl. Crimea. Geofabrik: https://download.geofabrik.de/europe/ukraine-latest.osm.pbf
+PBF_URL="${PBF_URL:-https://download.openstreetmap.fr/extracts/europe/ukraine.osm.pbf}"
 LAND_URL="${LAND_URL:-https://osmdata.openstreetmap.de/download/land-polygons-split-4326.zip}"
 GB_URL="${GB_URL:-https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/9469f09/releaseData/gbOpen/UKR/ADM0/geoBoundaries-UKR-ADM0.geojson}"
+CODAB_URL="${CODAB_URL:-https://data.humdata.org/dataset/d23f529f-31e4-4021-a65b-13987e5cfb42/resource/681beb86-391b-4a08-8140-ca52e80fcdce/download/ukr_admin_boundaries.geojson.zip}"
 
 # Clip outline source: osm (relation 60199 from the extract) | geoboundaries. See docs/OPEN.md §1.
-CLIP_SOURCE="${CLIP_SOURCE:-geoboundaries}"
+CLIP_SOURCE="${CLIP_SOURCE:-osm}"   # provisional, pending owner OK (OPEN.md §1)
 OSM_UKRAINE_RELATION="${OSM_UKRAINE_RELATION:-60199}"
 
 # Settlement source module: scripts/sources/settlements_<name>.sh. See docs/OPEN.md §2.
@@ -28,4 +31,4 @@ TILES="${TILES:-$OUT/the_map.pmtiles}"
 PY="$ROOT/.venv/bin/python"
 log() { printf '[%s] %s\n' "$(date -u +%H:%M:%S)" "$*" >&2; }
 # Variant tippecanoe-default lets tippecanoe decide visibility, so no prescribed per-feature minzoom.
-[[ "$VARIANT" == "tippecanoe-default" ]] && MINZOOM_PX2=0
+if [[ "$VARIANT" == "tippecanoe-default" ]]; then MINZOOM_PX2=0; fi
