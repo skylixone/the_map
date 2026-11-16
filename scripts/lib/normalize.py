@@ -54,12 +54,16 @@ EARTH_C = 40075016.686  # m, equatorial circumference
 M_PER_DEG = 111319.49
 
 
-def poly_minzoom(g, px2, maxz):
-    """First zoom (512 px tiles) at which polygon g covers >= px2 screen px^2. Latitude-corrected."""
+def area_m2(g):
+    return g.area * M_PER_DEG * M_PER_DEG * math.cos(math.radians(g.centroid.y))
+
+
+def poly_minzoom(g, px2, maxz, area=None):
+    """First zoom (512 px tiles) at which an area (default: g's own) covers >= px2 screen px^2. Latitude-corrected."""
     if px2 <= 0:
         return None
     k = math.cos(math.radians(g.centroid.y))
-    area_m2 = g.area * M_PER_DEG * M_PER_DEG * k
+    area_m2 = area if area is not None else g.area * M_PER_DEG * M_PER_DEG * k
     if area_m2 <= 0:
         return maxz
     z = 0.5 * math.log2(px2 * (EARTH_C * k) ** 2 / (512 ** 2 * area_m2))
@@ -95,6 +99,35 @@ class Clipper:
         if not self.g.intersects(geom):
             return None
         return keep_dim(shapely.intersection(geom, self.g), dim)
+
+
+def cluster_areas(geoms, gap_m):
+    """Union-find over polygons closer than gap_m; returns, per geometry, the summed area (m^2) of its cluster.
+    Why: OSM maps cities as many block-sized polygons and villages as one, so per-feature area measures mapping
+    granularity, not settlement size. Clustering across streets (gap < street width) restores the settlement as unit."""
+    import numpy as np
+    n = len(geoms)
+    parent = np.arange(n)
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+    gap_deg = gap_m / M_PER_DEG / math.cos(math.radians(52.4))  # conservative in lon across Ukraine's latitudes
+    tree = shapely.STRtree(geoms)
+    a, b = tree.query(geoms, predicate="dwithin", distance=gap_deg)
+    for i, j in zip(a, b):
+        if i < j:
+            ri, rj = find(i), find(j)
+            if ri != rj:
+                parent[ri] = rj
+    roots = np.array([find(i) for i in range(n)])
+    areas = np.array([area_m2(g) for g in geoms])
+    tot = collections.defaultdict(float)
+    for r, ar in zip(roots, areas):
+        tot[r] += ar
+    return [tot[r] for r in roots], len(set(roots.tolist()))
 
 
 def read_seq(path):
@@ -154,6 +187,7 @@ def run(a):
 
     elif a.layer == "settlements":
         to_kind = SETTLEMENT_SOURCES[a.source]
+        kept = []
         for f in read_seq(a.inp):
             if f["geometry"]["type"] not in ("Polygon", "MultiPolygon"):
                 continue
@@ -165,14 +199,20 @@ def run(a):
             if g is None:
                 stats["outside"] += 1
                 continue
-            z = poly_minzoom(g, a.px2, a.maxzoom)
+            kept.append((kind, g))
+        areas = [None] * len(kept)
+        if a.cluster_m > 0 and kept:
+            areas, nclusters = cluster_areas([g for _, g in kept], a.cluster_m)
+            stats["clusters"] = nclusters
+        for (kind, g), ar in zip(kept, areas):
+            z = poly_minzoom(g, a.px2, a.maxzoom, ar)
             out.write(feature({"kind": kind, "source": a.source}, g, z))
             stats[kind] += 1
             mz[z or 0] += 1
 
     out.close()
     report = {"layer": a.layer, "counts": dict(sorted(stats.items())), "minzoom_histogram": dict(sorted(mz.items())),
-              "px2": a.px2, "bbox": a.bbox}
+              "px2": a.px2, "cluster_m": a.cluster_m, "bbox": a.bbox}
     json.dump(report, open(a.out + ".stats.json", "w"), indent=1)
     print(json.dumps(report), file=sys.stderr)
 
@@ -187,4 +227,5 @@ if __name__ == "__main__":
     ap.add_argument("--px2", type=float, default=4)
     ap.add_argument("--maxzoom", type=int, default=14)
     ap.add_argument("--source", default="osm")
+    ap.add_argument("--cluster-m", type=float, default=0, help="settlements: cluster polygons closer than this (m) for minzoom")
     run(ap.parse_args())

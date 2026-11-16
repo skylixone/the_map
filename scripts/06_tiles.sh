@@ -12,7 +12,9 @@
 #   --detect-shared-borders      adjacent polygons simplify identically -> no hairline gaps between neighbours.
 #   ground: --no-feature-limit --no-tile-size-limit --no-tiny-polygon-reduction
 #                                ground must never be dropped or turned into squares; it is ~1 polygon per tile.
-#   VARIANT=explicit (default)
+#   VARIANT=clustered (default) — as explicit, but settlement minzoom uses the area of the cluster of polygons
+#                                closer than CLUSTER_M (30 m): cities are block-mapped, villages single-polygon.
+#   VARIANT=explicit
 #     --no-tiny-polygon-reduction  no synthetic squares: visibility = per-feature minzoom (area >= MINZOOM_PX2 px^2).
 #     --drop-smallest-as-needed    safety net for tiles over 500 KB; any non-empty "strategies" entry in the
 #                                  metadata means the minzoom rule was not enough there.
@@ -24,7 +26,7 @@ source "$(dirname "$0")/config.sh"
 L="$WORK/layers"; T="$WORK/tiles-$VARIANT"; rm -rf "$T"; mkdir -p "$T/buckets"
 common=(-z"$MAXZOOM" -P --force --quiet)
 case "$VARIANT" in
-  explicit)           gen=(--no-tiny-polygon-reduction --drop-smallest-as-needed) ;;
+  explicit|clustered) gen=(--no-tiny-polygon-reduction --drop-smallest-as-needed) ;;
   tippecanoe-default) gen=(--drop-densest-as-needed) ;;
   *) echo "unknown VARIANT=$VARIANT" >&2; exit 1 ;;
 esac

@@ -25,10 +25,13 @@ SETTLEMENT_SOURCE="${SETTLEMENT_SOURCE:-osm}"
 BBOX="${BBOX:-}"
 MINZOOM_PX2="${MINZOOM_PX2:-4}"
 MAXZOOM="${MAXZOOM:-14}"
-VARIANT="${VARIANT:-explicit}"   # explicit | tippecanoe-default. See scripts/06_tiles.sh.
+VARIANT="${VARIANT:-clustered}"   # clustered | explicit | tippecanoe-default. See scripts/06_tiles.sh.
 TILES="${TILES:-$OUT/the_map.pmtiles}"
 
 PY="$ROOT/.venv/bin/python"
 log() { printf '[%s] %s\n' "$(date -u +%H:%M:%S)" "$*" >&2; }
 # Variant tippecanoe-default lets tippecanoe decide visibility, so no prescribed per-feature minzoom.
 if [[ "$VARIANT" == "tippecanoe-default" ]]; then MINZOOM_PX2=0; fi
+# Settlement clustering gap for minzoom (m); only VARIANT=clustered uses it. ~street width.
+CLUSTER_M="${CLUSTER_M:-30}"
+if [[ "$VARIANT" != "clustered" ]]; then CLUSTER_M=0; fi

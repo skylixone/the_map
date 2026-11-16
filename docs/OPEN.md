@@ -40,12 +40,17 @@ Start: OSM `landuse=residential`. Modular seam: `scripts/sources/settlements_<na
 ## 3. Max zoom
 `-z14`, MapLibre overzooms. Revisit if print becomes real.
 
-## 4. Generalisation — needs an eyeball decision before the full build
-Two variants, both implemented (`VARIANT=` in `scripts/06_tiles.sh`, rationale per flag in its header):
-- `explicit`: per-feature minzoom = first zoom where area ≥ 4 screen px²; no tiny-polygon reduction. Only real geometry; sparse at z5–8.
-- `tippecanoe-default`: tiny-polygon reduction (sub-pixel polygons → area-preserving pixel squares) + drop-densest. Keeps the
-  village-grid texture at low zoom but as synthetic squares.
-Plan: sample build over Kyiv + rural Kyiv/Zhytomyr oblast (`BBOX=29.2,49.6,31.8,51.3`), both variants, screenshots at z6/z8/z10/z12.
+## 4. Generalisation — sample built, recommendation C, needs owner eyeball
+Sample: Kyiv + rural Kyiv/Zhytomyr oblast (`BBOX=29.2,49.6,31.8,51.3`, `scripts/sample.sh`), three variants:
+- A `explicit`: polygon visible from the first zoom where *its own* area ≥ 4 px². **Flaw:** OSM maps cities as many
+  block-sized polygons and villages as one, so at z6–8 Kyiv is sparser than its exurbs (inverted density).
+- C `clustered`: same, but area = sum over the cluster of polygons < 30 m apart (≈ street width). 14,674 polygons → 4,200
+  clusters. Real geometry only; Kyiv reads as the densest area again. **Recommended.**
+- B `tippecanoe-default`: tiny-polygon reduction (pixel squares) + drop-densest. Densest texture at z≤6, partly synthetic.
+From z10 up all three are visually identical (`docs/img/generalisation/ab-kyiv-z12.png`, `ab-rural-z10.png`).
+Sizes for the sample: A 13 MB, B 14 MB, C 13 MB.
+Open knobs: `MINZOOM_PX2` (4), `CLUSTER_M` (30). Hairline seams between adjacent residential blocks are visible at z12 in
+all variants — unsure whether they are real gaps in OSM or fill antialiasing; to check before the full build.
 
 ## 5. Schema sign-off (docs/SCHEMA.md)
 Needs OK: `intermittent` flag; whether `settlements.kind` adds `industrial|commercial|retail`; omission of `place`/name;
