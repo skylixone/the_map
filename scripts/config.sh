@@ -15,7 +15,7 @@ GB_URL="${GB_URL:-https://media.githubusercontent.com/media/wmgeolab/geoBoundari
 CODAB_URL="${CODAB_URL:-https://data.humdata.org/dataset/d23f529f-31e4-4021-a65b-13987e5cfb42/resource/681beb86-391b-4a08-8140-ca52e80fcdce/download/ukr_admin_boundaries.geojson.zip}"
 
 # Clip outline source: osm (relation 60199 from the extract) | geoboundaries. See docs/OPEN.md §1.
-CLIP_SOURCE="${CLIP_SOURCE:-osm}"   # provisional, pending owner OK (OPEN.md §1)
+CLIP_SOURCE="${CLIP_SOURCE:-osm}"   # approved 2026-11-16 (OPEN.md §1)
 OSM_UKRAINE_RELATION="${OSM_UKRAINE_RELATION:-60199}"
 
 # Settlement source module: scripts/sources/settlements_<name>.sh. See docs/OPEN.md §2.

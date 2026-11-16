@@ -46,7 +46,7 @@ for layer in water settlements; do
 done
 log "tile-join (${#parts[@]} parts)"
 tile-join --force --quiet --no-tile-size-limit -n "the_map" \
-  -N "Ukraine: ground, water, settlements (schema v0.2, $VARIANT, px2=$MINZOOM_PX2, outline=$CLIP_SOURCE)" \
+  -N "Ukraine: ground, water, settlements (schema v1.0, $VARIANT, px2=$MINZOOM_PX2, outline=$CLIP_SOURCE)" \
   -A '© OpenStreetMap contributors' -o "$T/the_map.mbtiles" "${parts[@]}"
 rm -f "$TILES"; pmtiles convert --quiet "$T/the_map.mbtiles" "$TILES" 2>/dev/null || pmtiles convert "$T/the_map.mbtiles" "$TILES" >/dev/null 2>&1
 log "wrote $TILES ($(du -h "$TILES" | cut -f1))"

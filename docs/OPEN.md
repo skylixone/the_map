@@ -9,7 +9,7 @@ added in the same change, works. Cause unconfirmed — likely Geofabrik refusing
 Options: (a) retry later; (b) another mirror of a Ukraine-with-Crimea extract (needs a new host + a check that its
 cut polygon includes Crimea); (c) owner downloads the pbf locally and runs `scripts/` there.
 
-## 1. Clip outline — recommendation ready, needs owner OK
+## 1. RESOLVED 2026-11-16 — Clip outline: OSM 60199 + containment guard, COD-AB as reference
 Three candidates measured (2026-11-16; scripts in `scripts/02_outline.sh`, `scripts/lib/outline.py`):
 
 | | OSM relation 60199 (extract 2026-11-15) | geoBoundaries gbOpen UKR ADM0 | OCHA COD-AB admin0 (Kartographia) |
@@ -40,7 +40,7 @@ Start: OSM `landuse=residential`. Modular seam: `scripts/sources/settlements_<na
 ## 3. Max zoom
 `-z14`, MapLibre overzooms. Revisit if print becomes real.
 
-## 4. Generalisation — sample built, recommendation C, needs owner eyeball
+## 4. RESOLVED 2026-11-16 — Generalisation: variant C `clustered`
 Sample: Kyiv + rural Kyiv/Zhytomyr oblast (`BBOX=29.2,49.6,31.8,51.3`, `scripts/sample.sh`), three variants:
 - A `explicit`: polygon visible from the first zoom where *its own* area ≥ 4 px². **Flaw:** OSM maps cities as many
   block-sized polygons and villages as one, so at z6–8 Kyiv is sparser than its exurbs (inverted density).
@@ -49,13 +49,20 @@ Sample: Kyiv + rural Kyiv/Zhytomyr oblast (`BBOX=29.2,49.6,31.8,51.3`, `scripts/
 - B `tippecanoe-default`: tiny-polygon reduction (pixel squares) + drop-densest. Densest texture at z≤6, partly synthetic.
 From z10 up all three are visually identical (`docs/img/generalisation/ab-kyiv-z12.png`, `ab-rural-z10.png`).
 Sizes for the sample: A 13 MB, B 14 MB, C 13 MB.
-Open knobs: `MINZOOM_PX2` (4), `CLUSTER_M` (30). Hairline seams between adjacent residential blocks are visible at z12 in
-all variants — unsure whether they are real gaps in OSM or fill antialiasing; to check before the full build.
+Open knobs: `MINZOOM_PX2` (4), `CLUSTER_M` (30).
+Hairlines between residential blocks at z12 — measured (central Kyiv, 2,052 neighbour pairs < 40 m): 12.5 % share an edge,
+62 % are 5–30 m apart. So they are mostly real streets (OSM maps residential per block); a 10 m street is < 1 px at z12 and
+renders as an antialiased hairline. Style question for phase 2 (e.g. closing gaps), not a data defect. Edge-sharing pairs are
+always in the same cluster -> same minzoom bucket -> `--detect-shared-borders` still applies to them.
 
-## 5. Schema sign-off (docs/SCHEMA.md)
+## 5. RESOLVED 2026-11-16 — Schema v1.0 signed off (docs/SCHEMA.md)
 Needs OK: `intermittent` flag; whether `settlements.kind` adds `industrial|commercial|retail`; omission of `place`/name;
 exclusion of `natural=wetland`; exclusion of tunnelled waterways and ditches/drains; line minzooms (river 6, canal 8, stream 11).
 
 ## 6. Kakhovka reservoir
 To record after extraction: how OSM tags the former reservoir area today (reservoir / intermittent / wetland / river + scrub).
 Not to be "fixed" in the pipeline.
+
+## 7. tippecanoe upstream (2.79.0) — does it fix feature minzoom?
+Owner approved building it in the cloud container; the session's permission check blocked the clone/build twice.
+Not needed for phase 1 (bucketing workaround verified). Test elsewhere or after adding a permission rule.

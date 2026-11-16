@@ -1,7 +1,7 @@
-# Tile schema — DRAFT v0.2 (optional items decided 2026-11-16; full sign-off pending)
+# Tile schema — v1.0 (approved by owner 2026-11-16)
 
 This is the contract between the pipeline and every future control: a style can only use what is listed here.
-Status: optional items decided 2026-11-16 (see DECISIONS.md). Generalisation (below) and overall sign-off still pending; no full build before that.
+Status: approved 2026-11-16. Changes need owner sign-off and a version bump here.
 
 ## Container
 - One file: `data/out/the_map.pmtiles`, MVT, gzip-compressed tiles, EPSG:3857.
@@ -47,7 +47,7 @@ Excluded: `waterway=ditch|drain` and any waterway segment with `tunnel=*` other 
 
 `kind` exists so that other sources and landuses can join without a schema break.
 `industrial`/`commercial`/`retail`: **excluded** (owner decision 2026-11-16); city cores will show holes where OSM has no residential.
-`place`/`name`: **recommend omitting.** Joining place nodes to residential polygons is ambiguous: one village spans several polygons, and one polygon can hold several places.
+`place`/`name`: **omitted** (approved 2026-11-16). Joining place nodes to residential polygons is ambiguous: one village spans several polygons, and one polygon can hold several places.
 Names are the heaviest attribute class. Phase 2 can add a separate `places` point layer for labels instead.
 
 ## Generalisation (affects what the tiles contain, so it lives in the contract)
@@ -57,8 +57,9 @@ minzoom, which is broken in the installed 2.49 (see DECISIONS.md).
 - Polygons (`water`, `settlements`): minzoom = first zoom at which the feature covers ≥ `MINZOOM_PX2` screen px²
   (512 px tiles, latitude-corrected). Default `MINZOOM_PX2=4` (≈2×2 px). `ground` is always 0.
 - Lines: by kind — `river` 6, `canal` 8, `stream` 11.
-- Tippecanoe flags are per layer and documented in `scripts/06_tiles.sh`. Two candidate generalisation variants
-  will be compared on a sample region before the full build (see `docs/OPEN.md` §4).
+- Settlements: minzoom uses the summed area of the cluster of polygons < `CLUSTER_M`=30 m apart, applied to every member
+  (variant `clustered`, approved 2026-11-16; rationale in OPEN.md §4 / DECISIONS.md).
+- Tippecanoe flags are per layer and documented in `scripts/06_tiles.sh`.
 
 ## Verification hooks
 `pmtiles show` must report exactly the layers `ground`, `water`, `settlements`, and in `vector_layers`,
