@@ -59,9 +59,14 @@ always in the same cluster -> same minzoom bucket -> `--detect-shared-borders` s
 Needs OK: `intermittent` flag; whether `settlements.kind` adds `industrial|commercial|retail`; omission of `place`/name;
 exclusion of `natural=wetland`; exclusion of tunnelled waterways and ditches/drains; line minzooms (river 6, canal 8, stream 11).
 
-## 6. Kakhovka reservoir
-To record after extraction: how OSM tags the former reservoir area today (reservoir / intermittent / wetland / river + scrub).
-Not to be "fixed" in the pipeline.
+## 6. RESOLVED 2026-11-16 — Kakhovka reservoir recorded (docs/VERIFY.md)
+OSM maps the drained bed as intermittent marsh (`natural=wetland`, excluded by schema v1.0) and the channel as untyped
+`natural=water`. On our map the former reservoir is ground with a narrow river. If the bed should be visible, the lever is
+adding `wetland` to the water layer (schema change, owner decision).
+
+## 8. Low-zoom density (overview z5–6 is sparse)
+Consequence of MINZOOM_PX2=4 with clustered areas. Options if unwanted: lower MINZOOM_PX2 at low zoom only, or per-zoom px²
+thresholds. Owner eyeball.
 
 ## 7. tippecanoe upstream (2.79.0) — does it fix feature minzoom?
 Owner approved building it in the cloud container; the session's permission check blocked the clone/build twice.

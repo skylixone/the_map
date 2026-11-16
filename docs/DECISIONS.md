@@ -24,3 +24,4 @@ Format: `YYYY-MM-DD — decision — reason`. Append only; supersede with a new 
 - 2026-11-16 — Verification includes decoding sample tiles and comparing feature counts with the input (not only metadata) — the minzoom loss passed every metadata check.
 - 2026-11-16 — Added generalisation variant `clustered` (default, provisional): settlement minzoom from cluster area (polygons < 30 m apart) — per-polygon area inverted urban density at z≤8 because OSM block-maps cities. Pending owner eyeball, OPEN.md §4.
 - 2026-11-16 — Owner approved: clip to OSM relation 60199 (guarded) with COD-AB as reference; generalisation variant `clustered` (MINZOOM_PX2=4, CLUSTER_M=30); schema v1.0; name/place omitted.
+- 2026-11-16 — Phase 1 built and verified: 175 MiB PMTiles, counts/metadata/no-loss/visual checks in docs/VERIFY.md. Kakhovka left as OSM maps it (bed = intermittent marsh, excluded by schema).
