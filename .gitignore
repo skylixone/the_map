@@ -1,0 +1,5 @@
+data/
+*.pmtiles
+*.osm.pbf
+__pycache__/
+.venv/

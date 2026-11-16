@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the_map</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/pmtiles@4.5.0/dist/pmtiles.js"></script>
+<style>
+  :root { --bg: #d9dee2; --ground: #f4f2ee; --water: #9fbfd6; --settle: #4a4a4a; --ink: #222; }
+  html, body, #map { margin: 0; height: 100%; background: var(--bg); }
+  #hud { position: absolute; left: 8px; top: 8px; font: 12px/1.4 ui-monospace, monospace; color: var(--ink);
+         background: rgb(255 255 255 / .85); padding: 4px 6px; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="hud"></div>
+<script>
+// Bare phase-1 viewer. ?pmtiles=<url relative to this page> switches tilesets (sample variants).
+// Serve with scripts/serve.py (needs HTTP Range). Line widths are screen px.
+const params = new URLSearchParams(location.search);
+const url = new URL(params.get('pmtiles') || '../data/out/the_map.pmtiles', location.href).href;
+const protocol = new pmtiles.Protocol();
+maplibregl.addProtocol('pmtiles', protocol.tile);
+
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const src = 'm';
+const map = new maplibregl.Map({
+  container: 'map', hash: true, center: [31.2, 48.6], zoom: 5.4, maxZoom: 18,
+  attributionControl: { compact: true },
+  style: {
+    version: 8,
+    sources: { [src]: { type: 'vector', url: 'pmtiles://' + url,
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' } },
+    layers: [
+      { id: 'bg', type: 'background', paint: { 'background-color': css('--bg') } },
+      { id: 'ground', type: 'fill', source: src, 'source-layer': 'ground',
+        paint: { 'fill-color': css('--ground'), 'fill-antialias': false } },
+      { id: 'water-fill', type: 'fill', source: src, 'source-layer': 'water', filter: ['==', ['geometry-type'], 'Polygon'],
+        paint: { 'fill-color': css('--water'), 'fill-opacity': ['case', ['get', 'intermittent'], 0.45, 1] } },
+      { id: 'water-line', type: 'line', source: src, 'source-layer': 'water',
+        filter: ['all', ['==', ['geometry-type'], 'LineString'], ['!', ['get', 'intermittent']]],
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: { 'line-color': css('--water'), 'line-width': ['match', ['get', 'kind'], 'river', 1.2, 'canal', 1, 0.6] } },
+      { id: 'water-line-intermittent', type: 'line', source: src, 'source-layer': 'water',
+        filter: ['all', ['==', ['geometry-type'], 'LineString'], ['get', 'intermittent']],
+        paint: { 'line-color': css('--water'), 'line-width': ['match', ['get', 'kind'], 'river', 1.2, 'canal', 1, 0.6],
+                 'line-dasharray': [3, 2] } },
+      { id: 'settlements', type: 'fill', source: src, 'source-layer': 'settlements',
+        paint: { 'fill-color': css('--settle') } },
+    ],
+  },
+});
+const hud = document.getElementById('hud');
+const show = () => { const c = map.getCenter();
+  hud.textContent = `z${map.getZoom().toFixed(2)}  ${c.lat.toFixed(4)},${c.lng.toFixed(4)}  ${url.split('/').pop()}`; };
+map.on('move', show); map.on('load', show);
+map.on('error', e => { hud.textContent = 'error: ' + (e.error?.message || e.error); });
+</script>
+</body>
+</html>
