@@ -21,6 +21,7 @@ Out of scope until phase 1 is verified: settings sheet, styling controls, print/
 - `docs/DECISIONS.md` — dated one-line decisions with reasons. Append, don't rewrite.
 - `docs/OPEN.md` — open questions and their current state.
 - `docs/VERIFY.md` — phase-1 verification record (counts, size, visual checks).
+- `docs/ROADMAP.md` — next goal: country-level map (phase 1 = detail base for later oblast/settlement maps); retention table.
 - `docs/briefs/<topic>.md` — self-contained briefs for split-off sessions.
 - `data/` — all downloaded and generated data. Gitignored.
 

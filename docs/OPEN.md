@@ -64,7 +64,9 @@ OSM maps the drained bed as intermittent marsh (`natural=wetland`, excluded by s
 `natural=water`. On our map the former reservoir is ground with a narrow river. If the bed should be visible, the lever is
 adding `wetland` to the water layer (schema change, owner decision).
 
-## 8. Low-zoom density (overview z5–6 is sparse)
+## 8. SUPERSEDED 2026-11-17 by docs/ROADMAP.md — Low-zoom density (overview z5–6 is sparse)
+Not a MINZOOM_PX2 tweak: country scale needs aggregation + simplification, a separate product. Decisions: ROADMAP.md §4.
+
 Consequence of MINZOOM_PX2=4 with clustered areas. Options if unwanted: lower MINZOOM_PX2 at low zoom only, or per-zoom px²
 thresholds. Owner eyeball.
 
