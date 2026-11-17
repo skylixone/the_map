@@ -1,9 +1,13 @@
 """Static file server with HTTP Range support (PMTiles needs it; python -m http.server lacks it).
-usage: python3 scripts/serve.py [port]   -> serves the repo root at http://127.0.0.1:8000/viewer/"""
+usage: python3 scripts/serve.py [port]   -> serves the repo root at http://127.0.0.1:8000/viewer/
+HOST=0.0.0.0 binds all interfaces (needed for a cloud-session preview pane). "/" redirects to /viewer/."""
 import http.server, os, re, sys
 
 class H(http.server.SimpleHTTPRequestHandler):
     def send_head(self):
+        if self.path in ("/", ""):
+            self.send_response(302); self.send_header("Location", "/viewer/"); self.end_headers()
+            return None
         rng = self.headers.get("Range")
         path = self.translate_path(self.path)
         if not rng or not os.path.isfile(path):
@@ -34,5 +38,6 @@ class H(http.server.SimpleHTTPRequestHandler):
 
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
-print(f"http://127.0.0.1:{port}/viewer/")
-http.server.ThreadingHTTPServer(("127.0.0.1", port), H).serve_forever()
+host = os.environ.get("HOST", "127.0.0.1")
+print(f"http://{host}:{port}/viewer/", flush=True)
+http.server.ThreadingHTTPServer((host, port), H).serve_forever()
