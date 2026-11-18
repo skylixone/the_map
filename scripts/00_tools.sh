@@ -10,6 +10,7 @@ if ! command -v pmtiles >/dev/null; then
   log "go-pmtiles v1.31.2"; GOBIN=/usr/local/bin go install github.com/protomaps/go-pmtiles@v1.31.2
   ln -sf /usr/local/bin/go-pmtiles /usr/local/bin/pmtiles
 fi
-[[ -x "$PY" ]] || { python3 -m venv "$ROOT/.venv"; "$PY" -m pip install -q 'shapely>=2.0,<3'; }
+[[ -x "$PY" ]] || { python3 -m venv "$ROOT/.venv"; "$PY" -m pip install -q 'shapely>=2.0,<3' 'pyproj>=3.6,<4'; }
+"$PY" -c 'import pyproj' 2>/dev/null || "$PY" -m pip install -q 'pyproj>=3.6,<4'   # country map (scripts/country)
 for t in osmium ogr2ogr tippecanoe; do printf "%-11s %s\n" "$t" "$($t --version 2>&1 | head -1)"; done; printf "%-11s %s\n" pmtiles "$(pmtiles version 2>&1 | head -1)"
 "$PY" -c 'import shapely; print("shapely    ", shapely.__version__)'

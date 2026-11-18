@@ -1,4 +1,4 @@
-# Country tile schema — v0.1 DRAFT (needs owner sign-off before C3 starts)
+# Country tile schema — v0.1 (approved by owner 2026-11-18)
 
 Second product next to the detail file (`docs/SCHEMA.md`, unchanged). Purpose and the numbers behind it are in
 `docs/ROADMAP.md` (§1, §6). Owner choices this encodes (2026-11-18): screen targets with print later (bands to z8);
@@ -23,7 +23,7 @@ tiles: 1 px ≈ 51,862 / 2^z m.
 | 7 | 405 m | 405 m | 0.66 km² | 203 m |
 | 8 | 203 m | 203 m | 0.16 km² | 101 m |
 
-z0–3 reuse the z4 parameters. **Areal generalisation G(z)**, done in a metric CRS (UTM 36N, EPSG:32636):
+z0–3 reuse the z4 geometry. Pixel sizes are applied latitude-corrected per feature (table values are at 48.5°N; ±8 % across Ukraine). **Areal generalisation G(z)**, done in a metric CRS (UTM 36N, EPSG:32636):
 1. union the inputs;
 2. buffer +½ gap, then −½ gap. This is a morphological closing: features less than 1 px apart merge and sub-pixel gaps close;
 3. drop parts smaller than the min area;

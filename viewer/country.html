@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the_map country</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/pmtiles@4.5.0/dist/pmtiles.js"></script>
+<style>
+  :root { --bg: #d9dee2; --ground: #f4f2ee; --water: #9fbfd6; --settle: #4a4a4a; --ink: #222; }
+  html, body, #map { margin: 0; height: 100%; background: var(--bg); }
+  #hud { position: absolute; left: 8px; top: 8px; font: 12px/1.4 ui-monospace, monospace; color: var(--ink);
+         background: rgb(255 255 255 / .85); padding: 4px 6px; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="hud"></div>
+<script>
+// Bare country-map viewer (docs/SCHEMA-country.md). ?pmtiles=<url relative to this page>. Serve with scripts/serve.py.
+// Style is a neutral default for checking the data, not a design: dot radii by `pop` class are placeholders.
+const params = new URLSearchParams(location.search);
+const url = new URL(params.get('pmtiles') || '../data/out/the_map-country.pmtiles', location.href).href;
+const protocol = new pmtiles.Protocol();
+maplibregl.addProtocol('pmtiles', protocol.tile);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const src = 'c';
+const map = new maplibregl.Map({
+  container: 'map', hash: true, bounds: [[22.1, 44.3], [40.3, 52.4]], fitBoundsOptions: { padding: 8 }, maxZoom: 10,
+  attributionControl: { compact: true },
+  style: {
+    version: 8,
+    sources: { [src]: { type: 'vector', url: 'pmtiles://' + url, maxzoom: 8,
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' } },
+    layers: [
+      { id: 'bg', type: 'background', paint: { 'background-color': css('--bg') } },
+      { id: 'ground', type: 'fill', source: src, 'source-layer': 'ground', paint: { 'fill-color': css('--ground') } },
+      { id: 'water-fill', type: 'fill', source: src, 'source-layer': 'water', filter: ['==', ['geometry-type'], 'Polygon'],
+        paint: { 'fill-color': css('--water') } },
+      { id: 'water-line', type: 'line', source: src, 'source-layer': 'water', filter: ['==', ['geometry-type'], 'LineString'],
+        layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': css('--water'), 'line-width': 1.2 } },
+      { id: 'builtup', type: 'fill', source: src, 'source-layer': 'builtup', paint: { 'fill-color': css('--settle') } },
+      { id: 'places', type: 'circle', source: src, 'source-layer': 'places',
+        paint: { 'circle-color': css('--settle'), 'circle-stroke-width': 0,
+                 'circle-radius': ['match', ['get', 'pop'], 5, 4, 4, 3, 3, 2, 2, 1.2, 0.8] } },
+    ],
+  },
+});
+window.__map = map; // hook for scripts/screens.mjs
+const hud = document.getElementById('hud');
+const show = () => { const c = map.getCenter();
+  hud.textContent = `z${map.getZoom().toFixed(2)}  ${c.lat.toFixed(4)},${c.lng.toFixed(4)}  ${url.split('/').pop()}`; };
+map.on('move', show); map.on('load', show);
+map.on('error', e => { hud.textContent = 'error: ' + (e.error?.message || e.error); });
+</script>
+</body>
+</html>
