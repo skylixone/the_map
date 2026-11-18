@@ -6,7 +6,7 @@ usage: country.py --work DATA/work --out DIR --bands "4 5 6 7 8" [--gap-px 1 --a
 Writes OUT/z<band>/{ground,water,builtup,places}.geojsonseq and OUT/stats.json.
 All geometry work happens in UTM 36N (EPSG:32636); pixel sizes are latitude-corrected per feature (512 px tiles).
 """
-import argparse, collections, json, math, os, re, sys
+import argparse, collections, json, math, os, re, sys, time
 import numpy as np, shapely
 from shapely.geometry import shape
 from pyproj import Transformer
@@ -57,7 +57,7 @@ def write_seq(path, feats):
 def polys(g):
     """Polygon parts of a geometry array (drops lines/points produced by buffers or clipping)."""
     p = shapely.get_parts(shapely.make_valid(np.asarray(g)))
-    return p[shapely.get_type_id(p) == 3]
+    return p[(shapely.get_type_id(p) == 3) & ~shapely.is_empty(p)]
 
 
 # ---- areal generalisation G(z) ---------------------------------------------------------------
@@ -250,7 +250,9 @@ def main():
     pl_m, pl_props = pl_m[inside], [p for p, k in zip(pl_props, inside) if k]
     log(f"places inside outline: {len(pl_props)}")
 
+    t = time.time()
     rv, near = rivers(cw, outline_m, a)
+    log(f"rivers grouped in {time.time()-t:.0f}s")
     log(f"rivers >= {a.river_min_km} km: {len(rv)}; near misses: {len(near)}")
 
     stats = {"params": vars(a), "rivers": [(l, k) for l, k, _ in rv], "river_near_misses": near,
@@ -259,9 +261,12 @@ def main():
         log(f"band z{z}")
         d = os.path.join(a.out, f"z{z}")
         os.makedirs(d, exist_ok=True)
-        g_ground = generalise(ground, z, a, outline_m, close=False)
-        g_water = generalise(water, z, a, outline_m)
-        g_built = generalise(settle, z, a, outline_m)
+        t = time.time()
+        g_ground = generalise(ground, z, a, outline_m, close=False); log(f"  ground {len(g_ground)} parts {time.time()-t:.0f}s")
+        t = time.time()
+        g_water = generalise(water, z, a, outline_m); log(f"  water {len(g_water)} parts {time.time()-t:.0f}s")
+        t = time.time()
+        g_built = generalise(settle, z, a, outline_m); log(f"  builtup {len(g_built)} parts {time.time()-t:.0f}s")
         tree = shapely.STRtree(g_built)
         covered = np.zeros(len(pl_m), bool)
         hit = tree.query(pl_m, predicate="within")[0]
