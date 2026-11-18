@@ -111,6 +111,8 @@ def parse_relations(path):
                     ref, _, role = m.partition("@")
                     if ref.startswith("w"):
                         mem.append((int(ref[1:]), opl_unescape(role)))
+        if tags.get("waterway") != "river":  # type=waterway also covers canal systems (North Crimean, Dnipro–Donbas)
+            continue
         names = {tags[k] for k in ("name", "name:uk") if k in tags}
         rels.append((names, mem, tags.get("name:uk") or tags.get("name") or "?"))
     return rels
@@ -123,6 +125,8 @@ def rivers(work, outline_m, a):
     for f in read_seq(os.path.join(work, "rivers.raw.geojsonseq")):
         p, g = f["properties"], f["geometry"]
         if p.get("@type") != "way" or g["type"] != "LineString":
+            continue
+        if p.get("waterway") == "canal":  # canals never count as river length, even inside a river relation
             continue
         ways[p["@id"]] = (p.get("name"), p.get("waterway"), g["coordinates"])
     rels = parse_relations(os.path.join(work, "river-rels.opl"))

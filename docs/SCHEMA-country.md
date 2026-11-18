@@ -1,4 +1,4 @@
-# Country tile schema — v0.1 (approved by owner 2026-11-18)
+# Country tile schema — v0.2 (v0.1 approved 2026-11-18; v0.2 = owner's pick of sample C, same day)
 
 Second product next to the detail file (`docs/SCHEMA.md`, unchanged). Purpose and the numbers behind it are in
 `docs/ROADMAP.md` (§1, §6). Owner choices this encodes (2026-11-18): screen targets with print later (bands to z8);
@@ -30,7 +30,11 @@ z0–3 reuse the z4 geometry. Pixel sizes are applied latitude-corrected per fea
 4. simplify to 0.5 px with topology preserved;
 5. clip to the outline.
 
-The three parameters (gap 1 px, area 4 px², simplify 0.5 px) are the knobs for C4. The values above are the starting set.
+Knobs and current values (v0.2, sample C, `docs/img/country/abc-2026-11-18.png`):
+- `builtup` closing gap **0.5 px** (v0.1 had 1 px: at z4 that grew built-up area to 2.1× the residential area);
+- `water` polygons: **union only, no closing** (v0.1 closing at 1 px invented lakes from pond fields: z4 water 53,283 km² vs 7,803 km² union-only);
+- min area 4 px², simplify 0.5 px for all. The closing-gap column in the table above applies to `builtup` at 2× its value
+  (gap 0.5 px).
 
 ## Layer `ground`
 | geometry | attributes | zooms |
@@ -43,11 +47,13 @@ coastline gaps would fill real bays and spits.
 ## Layer `water`
 | geometry | attributes | zooms | content |
 |---|---|---|---|
-| Polygon | none | 0–8 | G(z) over every phase-1 water polygon except `intermittent` ones |
+| Polygon | none | 0–8 | G(z) without closing (union only) over every phase-1 water polygon except `intermittent` ones |
 | LineString | none | 0–8 | rivers ≥ 200 km, one merged line per river, simplified 0.5 px |
 
 - `kind` is dropped: one water colour at country scale. Intermittent polygons are excluded. That covers dry beds and seasonal lakes, and Kakhovka
   keeps its permanent channel only. **Owner check.**
+- Only `waterway=river` relations and non-canal ways count (canal systems are `type=waterway` relations too). Danube's
+  Ukrainian stretch is < 150 km inside the outline, so it shows as water polygons, not as a selected line.
 - River selection is by **length inside the outline**: ~36 rivers by the name-merge estimate (ROADMAP §6). Members are merged by
   `waterway=river` relation first, then by name plus connectivity, so that rivers sharing a name don't add up. C3 reports the exact list for review.
 - Border rivers (Danube's Kiliia branch, Prut, Tysa, parts of the Dniester) run *along* the outline, so clipping can
