@@ -100,7 +100,7 @@ The container is ephemeral and `data/` is gitignored.
 |---|---|---|---|
 | code, docs, schema | small | git, branch `claude/the-map-hq-kickoff-utk6v8` | clone |
 | phase-1 tiles `the_map.pmtiles` | 175 MiB | private artifact https://claude.ai/artifact/Qonz2CqpPaqXzKk7KijLMx, 175 base64 pieces `t/cNNN.txt` | Claude: Artifact `read` with `paths` for all 175 pieces, then `base64 -d` each and `cat` them in order; md5 below |
-| OSM extract `ukraine-latest.osm.pbf`, 2026-11-15T01:19:34Z | 970 MB | **none** | the mirror keeps only the latest, so the 2026-11-15 snapshot is lost when the container goes. Needs a home (owner's Mac via Remote Control, or other storage) |
+| OSM extract `ukraine-latest.osm.pbf`, 2026-11-15T01:19:34Z | 970 MB | GitHub, Git LFS, data-only branch `data/osm-2026-11-15` (pushed 2026-11-18, LFS oid sha256 `89589465c34e…936c`); to be copied to the owner's Mac | `git fetch origin data/osm-2026-11-15` + `git lfs pull`, or a worktree of that branch; check md5 below |
 | land polygons, geoBoundaries, COD-AB | 1.3 GB | none needed | re-download (`scripts/01_download.sh`); sources are versioned upstream |
 | normalised layers `data/work/layers/` | 404 MB | none | regenerate from the PBF: `scripts/02–05`, ~10 min |
 
