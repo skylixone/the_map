@@ -1,6 +1,6 @@
 # Roadmap — country-level map
 
-Status 2026-11-17: proposed, owner decisions pending (§4). Nothing here is built yet.
+Status 2026-11-18: owner answered §4 (see §6); Q2 awaits a pick after the advice in §6. Nothing here is built yet.
 
 ## 1. Problem
 Goal: one map where all of Ukraine fits in a single view and still reads as Ukraine — built-up areas, rivers and water at
@@ -105,3 +105,52 @@ The container is ephemeral and `data/` is gitignored.
 | normalised layers `data/work/layers/` | 404 MB | none | regenerate from the PBF: `scripts/02–05`, ~10 min |
 
 Checksums: PBF md5 `6a81a0abe569f39e155d945bb8aa68d2`; PMTiles md5 `05dafa74ff90ffd811cae0d1c0dffe26` (183,348,349 bytes).
+
+## 6. Owner answers 2026-11-18 and measurements behind the open one
+1. **Targets: screen** (phone z≈3.9 – desktop z≈5.5). Print later, from the same pipeline. Mechanism: print must be
+   rendered as a *large viewport at the print zoom* (A3 300 dpi ≈ z7.6), not as a high `pixelRatio` at screen zoom —
+   MapLibre picks tiles by zoom, so a 3× pixelRatio at z5.5 would print z5-band geometry (simplified to 0.5 screen px =
+   1.5 print px, visibly coarse). Therefore the country file keeps bands up to **z8** even though screen needs ≤ z6.
+2. **Settlements: (b) or (c) — open, advice below.**
+3. **Rivers: (b) named rivers, with a togglable level.** Interpretation (assumption, confirm): only named rivers enter
+   the country file, each carrying a `rank` (length class), and the viewer gets a control for how many ranks show.
+4. **Product: separate file** `the_map-country.pmtiles`.
+5. **Raw extract:** a newer download is acceptable; keep the 2026-11-15 snapshot on GitHub (Git LFS, data-only branch
+   `data/osm-2026-11-15`) until it can be copied to the owner's Mac.
+
+### Measurements (2026-11-18, phase-1 data, scripts in session scratchpad, numbers reproducible from data/work)
+Settlement clusters (CLUSTER_M=30): 58,548; area p10 0.002 / p50 0.055 / p90 1.34 / p99 6.07 / max 66.0 km².
+The median cluster (~235 × 235 m) is ≈1.3 px² even at z8.
+
+| zoom | 1 px | clusters ≥ 4 px² (readable as area) | clusters ≥ 1 px² |
+|---|---|---|---|
+| 4 | 3.2 km | 5 | 183 |
+| 5 | 1.6 km | 183 | 2,533 |
+| 6 | 810 m | 2,533 | 10,724 |
+| 7 | 405 m | 10,724 | 21,611 |
+| 8 | 203 m | 21,611 | 31,363 |
+
+OSM place nodes inside the outline vs residential polygons:
+
+| place | count | `population` tagged | residential polygon within 300 m |
+|---|---|---|---|
+| city | 47 | 100 % | 96 % |
+| town | 1,261 | 100 % | 82 % |
+| village | 25,155 | 100 % | 69 % |
+| hamlet | 3,290 | 97 % | 49 % |
+
+Population provenance: 99 % have neither `population:date` nor `source:population`; likely an old census import
+(2001?) — **unsure**, and pre-war in any case. Usable for size *classes*, not as current figures.
+Named rivers: 32,133 `waterway=river` ways, 83 % named, 67,717 km; 2,466 distinct names; 806 `waterway=river`
+relations. Names with merged length ≥ 500 / 200 / 100 / 50 / 20 km: 6 / 36 / 102 / 287 / 782. Merging by name
+conflates same-named different rivers (common names like Суха Балка) — C3 merges by relation first, by name + connectivity second.
+
+### Advice on Q2: (b), with (c) as a later optional underlay
+- At desktop country zoom only ~200–2,500 clusters can read as areas; ~26k villages exist. Footprints alone cannot
+  carry the country picture — something point-like is needed for the rest.
+- (b) needs no new source: place nodes are complete for city/town/village with population on ~100 %, and they cover
+  the 31 % of villages / 18 % of towns that have no residential polygon nearby (OSM coverage gaps). Footprints of the
+  big clusters plus population-classed dots read as "where the places are" and lead straight into a later labels phase.
+- (c) answers a different question ("how dense is building"): needs GHSL (new source, JRC host not allowed yet), a raster
+  or contour pipeline, and its epochs are pre-war like the OSM populations. It is exactly what the settlement-coverage
+  spike evaluates, so decide (c) from the spike's result, as a togglable underlay — it doesn't block (b).
