@@ -1,6 +1,6 @@
 # Roadmap — country-level map
 
-Status 2026-11-18: all §4 questions answered (§6). Next: owner sign-off on `docs/SCHEMA-country.md` v0.1, then C3. Nothing built yet.
+Status 2026-11-18: C0–C5 done. Country map built and verified (`docs/VERIFY-country.md`), sample C, schema-country v0.2; phone page https://claude.ai/artifact/2DC9v3pJXDNrrgNZFep2AP. Open: low-zoom dot density is a styling question.
 
 ## 1. Problem
 Goal: one map where all of Ukraine fits in a single view and still reads as Ukraine — built-up areas, rivers and water at
@@ -102,6 +102,7 @@ The container is ephemeral and `data/` is gitignored.
 | phase-1 tiles `the_map.pmtiles` | 175 MiB | private artifact https://claude.ai/artifact/Qonz2CqpPaqXzKk7KijLMx, 175 base64 pieces `t/cNNN.txt` | Claude: Artifact `read` with `paths` for all 175 pieces, then `base64 -d` each and `cat` them in order; md5 below |
 | OSM extract `ukraine-latest.osm.pbf`, 2026-11-15T01:19:34Z | 970 MB | GitHub, Git LFS, data-only branch `data/osm-2026-11-15` (pushed 2026-11-18, LFS oid sha256 `89589465c34e…936c`); to be copied to the owner's Mac | `git fetch origin data/osm-2026-11-15` + `git lfs pull`, or a worktree of that branch; check md5 below |
 | land polygons, geoBoundaries, COD-AB | 1.3 GB | none needed | re-download (`scripts/01_download.sh`); sources are versioned upstream |
+| country tiles `the_map-country.pmtiles` (md5 f08cf51d…) | 2.7 MB | private artifact https://claude.ai/artifact/2DC9v3pJXDNrrgNZFep2AP (`country.txt`, base64) | Artifact `read` path `country.txt`, `base64 -d`; or rebuild (`scripts/country/build.sh`, ~11 min) |
 | normalised layers `data/work/layers/` | 404 MB | none | regenerate from the PBF: `scripts/02–05`, ~10 min |
 
 Checksums: PBF md5 `6a81a0abe569f39e155d945bb8aa68d2`; PMTiles md5 `05dafa74ff90ffd811cae0d1c0dffe26` (183,348,349 bytes).
