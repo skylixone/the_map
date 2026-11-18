@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Mechanical checks: PMTiles metadata vs docs/SCHEMA.md, feature counts, file size.
 source "$(dirname "$0")/config.sh"
-pmtiles show "$TILES" | grep -vE '^\s*$' | head -30
+pmtiles show "$TILES" | grep -vE '^\s*$' | sed -n '1,30p'
 pmtiles show --metadata "$TILES" > "$WORK/metadata.json"
 "$PY" -I - "$WORK/metadata.json" "$WORK/layers" <<'PYEOF'
 import json, sys, glob, os

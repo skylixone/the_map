@@ -61,17 +61,19 @@ def polys(g):
 
 
 # ---- areal generalisation G(z) ---------------------------------------------------------------
-def generalise(geoms_m, z, a, outline_m, close=True):
-    """Closing (< gap px), drop parts < area px^2, simplify, clip. geoms_m: metric polygons. Returns metric polygons."""
+def generalise(geoms_m, z, a, outline_m, gap_px):
+    """Union; closing (< gap_px px; 0 = union only); drop parts < area px^2; simplify; clip. Metric in and out."""
     lat = lat_of(geoms_m)
     px = px_m(z, lat)
     g = shapely.simplify(geoms_m, px * a.simplify_px * 0.5)  # cheap pre-thinning; final tolerance applied below
-    if close:
-        r = px * a.gap_px / 2
+    if gap_px > 0:
+        r = px * gap_px / 2
         merged = polys([shapely.union_all(shapely.buffer(g, r, quad_segs=2))])
-        r2 = px_m(z, lat_of(merged)) * a.gap_px / 2
+        r2 = px_m(z, lat_of(merged)) * gap_px / 2
         g = polys(shapely.buffer(merged, -r2, quad_segs=2))
-    else:
+    elif gap_px == 0:
+        g = polys([shapely.union_all(polys(g))])
+    else:  # < 0: no union at all (ground: keep coastline parts as drawn)
         g = polys(g)
     pxp = px_m(z, lat_of(g))
     g = g[shapely.area(g) >= a.area_px2 * pxp ** 2]
@@ -212,12 +214,15 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--bands", default="4 5 6 7 8")
     ap.add_argument("--gap-px", type=float, default=1)
+    ap.add_argument("--water-gap-px", type=float, default=None, help="closing gap for water (default: --gap-px; 0 = union only)")
     ap.add_argument("--area-px2", type=float, default=4)
     ap.add_argument("--simplify-px", type=float, default=0.5)
     ap.add_argument("--river-min-km", type=float, default=200)
     ap.add_argument("--river-clip-m", type=float, default=200)
     a = ap.parse_args()
     bands = [int(b) for b in a.bands.split()]
+    if a.water_gap_px is None:
+        a.water_gap_px = a.gap_px
     cw = os.path.join(a.work, "country")
     log = lambda *m: print("[country]", *m, file=sys.stderr, flush=True)
 
@@ -262,11 +267,11 @@ def main():
         d = os.path.join(a.out, f"z{z}")
         os.makedirs(d, exist_ok=True)
         t = time.time()
-        g_ground = generalise(ground, z, a, outline_m, close=False); log(f"  ground {len(g_ground)} parts {time.time()-t:.0f}s")
+        g_ground = generalise(ground, z, a, outline_m, -1); log(f"  ground {len(g_ground)} parts {time.time()-t:.0f}s")
         t = time.time()
-        g_water = generalise(water, z, a, outline_m); log(f"  water {len(g_water)} parts {time.time()-t:.0f}s")
+        g_water = generalise(water, z, a, outline_m, a.water_gap_px); log(f"  water {len(g_water)} parts {time.time()-t:.0f}s")
         t = time.time()
-        g_built = generalise(settle, z, a, outline_m); log(f"  builtup {len(g_built)} parts {time.time()-t:.0f}s")
+        g_built = generalise(settle, z, a, outline_m, a.gap_px); log(f"  builtup {len(g_built)} parts {time.time()-t:.0f}s")
         tree = shapely.STRtree(g_built)
         covered = np.zeros(len(pl_m), bool)
         hit = tree.query(pl_m, predicate="within")[0]

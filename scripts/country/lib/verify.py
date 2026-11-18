@@ -62,8 +62,12 @@ for z in bands:
         pts = shapely.point_on_surface(sample)
         hit = np.zeros(len(pts), bool)
         hit[cover.query(pts, predicate="intersects")[0]] = True
-        line += f" | {name}: {hit.sum()}/{len(pts)} covered"
-        ok &= hit.mean() >= 0.99  # quantisation at the tile grid can move a sliver's interior point
+        present = np.zeros(len(sample), bool)
+        present[cover.query(sample, predicate="intersects")[0]] = True
+        # presence (must be 100 %): the part still exists in the tiles. Interior-point cover is informational:
+        # thin winding parts (rivers, ~1 px wide) move their interior point out under tile simplification.
+        line += f" | {name}: present {present.sum()}/{len(sample)}, interior pt {hit.sum()}"
+        ok &= bool(present.all())
     print(line)
 print("RESULT", "OK" if ok else "FAIL")
 sys.exit(0 if ok else 1)
