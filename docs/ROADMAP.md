@@ -1,6 +1,6 @@
 # Roadmap — country-level map
 
-Status 2026-11-18: owner answered §4 (see §6); Q2 awaits a pick after the advice in §6. Nothing here is built yet.
+Status 2026-11-18: all §4 questions answered (§6). Next: owner sign-off on `docs/SCHEMA-country.md` v0.1, then C3. Nothing built yet.
 
 ## 1. Problem
 Goal: one map where all of Ukraine fits in a single view and still reads as Ukraine — built-up areas, rivers and water at
@@ -111,9 +111,8 @@ Checksums: PBF md5 `6a81a0abe569f39e155d945bb8aa68d2`; PMTiles md5 `05dafa74ff90
    rendered as a *large viewport at the print zoom* (A3 300 dpi ≈ z7.6), not as a high `pixelRatio` at screen zoom —
    MapLibre picks tiles by zoom, so a 3× pixelRatio at z5.5 would print z5-band geometry (simplified to 0.5 screen px =
    1.5 print px, visibly coarse). Therefore the country file keeps bands up to **z8** even though screen needs ≤ z6.
-2. **Settlements: (b) or (c) — open, advice below.**
-3. **Rivers: (b) named rivers, with a togglable level.** Interpretation (assumption, confirm): only named rivers enter
-   the country file, each carrying a `rank` (length class), and the viewer gets a control for how many ranks show.
+2. **Settlements: (b)** — built-up areas + population-classed place dots (owner 2026-11-18, after the advice below).
+3. **Rivers: only rivers ≥ 200 km** (owner 2026-11-18; supersedes the earlier "named + togglable level"). No rank attribute.
 4. **Product: separate file** `the_map-country.pmtiles`.
 5. **Raw extract:** a newer download is acceptable; keep the 2026-11-15 snapshot on GitHub (Git LFS, data-only branch
    `data/osm-2026-11-15`) until it can be copied to the owner's Mac.

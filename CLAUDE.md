@@ -18,6 +18,7 @@ Out of scope until phase 1 is verified: settings sheet, styling controls, print/
 
 ## Pointers
 - `docs/SCHEMA.md` — tile schema. **The contract.** Changes need owner sign-off.
+- `docs/SCHEMA-country.md` — country-map schema (separate file `the_map-country.pmtiles`, z0–8). Draft until signed off.
 - `docs/DECISIONS.md` — dated one-line decisions with reasons. Append, don't rewrite.
 - `docs/OPEN.md` — open questions and their current state.
 - `docs/VERIFY.md` — phase-1 verification record (counts, size, visual checks).
